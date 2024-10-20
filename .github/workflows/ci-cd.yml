@@ -37,17 +37,17 @@ jobs:
           key: ${{ secrets.APP_TIER_EC2_PRIVATE_KEY }}
           script: |
             echo "Pulling Docker images..."
-            docker pull abhimonk1998/web-tier:latest
+            docker pull abhimonk1998/app-tier:latest
 
             echo "Stopping and removing existing containers..."
-            docker stop web-tier || true
-            docker rm web-tier || true
+            docker stop app-tier || true
+            docker rm app-tier || true
 
             echo "Creating Docker network..."
             docker network create my-network || true
 
-            echo "Starting web-tier container..."
-            docker run -d --name web-tier --network my-network \
+            echo "Starting app-tier container..."
+            docker run -d --name app-tier --network my-network \
               -p 80:3000 \
               -v /path/to/data:/app/data \
               -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
