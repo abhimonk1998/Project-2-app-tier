@@ -8,8 +8,12 @@ import os
 # AWS Configuration
 REGION = 'us-east-1'
 ASU_ID = '1229855837'  # Replace with your ASU ID
-REQUEST_QUEUE_URL = f'https://sqs.{REGION}.amazonaws.com/137068238639/{ASU_ID}-req-queue.fifo'
-RESPONSE_QUEUE_URL = f'https://sqs.{REGION}.amazonaws.com/137068238639/{ASU_ID}-resp-queue.fifo'
+REQUEST_QUEUE_URL = f'https://sqs.{REGION}.amazonaws.com/137068238639/{ASU_ID}-req-queue'
+RESPONSE_QUEUE_URL = f'https://sqs.{REGION}.amazonaws.com/137068238639/{ASU_ID}-resp-queue'
+
+# https://sqs.us-east-1.amazonaws.com/137068238639/1229855837-req-queue
+# https://sqs.us-east-1.amazonaws.com/137068238639/1229855837-resp-queue
+
 # https://sqs.us-east-1.amazonaws.com/137068238639
 INPUT_BUCKET_NAME = f'{ASU_ID}-in-bucket'
 OUTPUT_BUCKET_NAME = f'{ASU_ID}-out-bucket'
@@ -69,8 +73,6 @@ while True:
                     'fileName': file_name,
                     'classificationResult': result
                 }),
-                MessageGroupId= "app-tier-group", 
-                MessageDeduplicationId= file_name,
             )
 
             # Delete the message from the Request Queue
