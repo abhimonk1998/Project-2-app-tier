@@ -39,7 +39,7 @@ while True:
     print(REQUEST_QUEUE_URL)
     response = sqs.receive_message(
         QueueUrl=REQUEST_QUEUE_URL,
-        MaxNumberOfMessages=1,
+        MaxNumberOfMessages=10,
         WaitTimeSeconds=20
     )
 
