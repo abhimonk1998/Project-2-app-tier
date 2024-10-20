@@ -39,7 +39,7 @@ while True:
     print(REQUEST_QUEUE_URL)
     response = sqs.receive_message(
         QueueUrl=REQUEST_QUEUE_URL,
-        MaxNumberOfMessages=10,
+        MaxNumberOfMessages=1,
         WaitTimeSeconds=20
     )
 
@@ -79,4 +79,4 @@ while True:
                 ReceiptHandle=message['ReceiptHandle']
             )
 
-    time.sleep(1)
+    time.sleep(2)
