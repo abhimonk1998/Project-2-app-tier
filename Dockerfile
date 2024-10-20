@@ -5,10 +5,16 @@ FROM python:3.9-slim
 WORKDIR /usr/src/app
 
 # Copy the requirements.txt file into the container
-COPY requirements.txt ./
+# COPY requirements.txt ./
+
+RUN pip install --upgrade pip && \
+    pip install boto3 requests
+
+# Install PyTorch, TorchVision, and Torchaudio for CPU
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 
 # Install any dependencies specified in the requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code into the container
 COPY . .
