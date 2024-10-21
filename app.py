@@ -38,47 +38,51 @@ def process_image(file_path):
 
     return classification_result  # Replace this with real inference logic
 
-while True:
-    # Receive messages from the Request Queue
-    print(REQUEST_QUEUE_URL)
-    response = sqs.receive_message(
-        QueueUrl=REQUEST_QUEUE_URL,
-        MaxNumberOfMessages=1,
-        WaitTimeSeconds=10
-    )
+def read_requests():
+    while True:
+        # Receive messages from the Request Queue
+        print(REQUEST_QUEUE_URL)
+        response = sqs.receive_message(
+            QueueUrl=REQUEST_QUEUE_URL,
+            MaxNumberOfMessages=1,
+            WaitTimeSeconds=20
+        )
 
-    if 'Messages' in response:
-        for message in response['Messages']:
-            body = json.loads(message['Body'])
-            file_name = body['fileName']
-            file_data_base64 = body['fileData']
+        if 'Messages' in response:
+            for message in response['Messages']:
+                body = json.loads(message['Body'])
+                file_name = body['fileName']
+                file_data_base64 = body['fileData']
 
-            # Decode the base64 image data and save it
-            image_bytes = base64.b64decode(file_data_base64)
-            with open(file_name, 'wb') as image_file:
-                image_file.write(image_bytes)
+                # Decode the base64 image data and save it
+                image_bytes = base64.b64decode(file_data_base64)
+                with open(file_name, 'wb') as image_file:
+                    image_file.write(image_bytes)
 
-            # Upload the image to S3 Input Bucket
-            s3.upload_file(file_name, INPUT_BUCKET_NAME, file_name)
-            # Run the model inference on the saved image
-            result = process_image(file_name)
+                # Upload the image to S3 Input Bucket
+                # Run the model inference on the saved image
+                result = process_image(file_name)
+                s3.upload_file(file_name, INPUT_BUCKET_NAME, file_name)
+                
+                # Upload the classification result to the S3 Output Bucket (Optional)
+                s3.put_object(Bucket=OUTPUT_BUCKET_NAME, Key=f'{file_name}.txt', Body=result)
 
-            # Upload the classification result to the S3 Output Bucket (Optional)
-            s3.put_object(Bucket=OUTPUT_BUCKET_NAME, Key=f'{file_name}.txt', Body=result)
+                # Send the result to the Response Queue
+                sqs.send_message(
+                    QueueUrl=RESPONSE_QUEUE_URL,
+                    MessageBody=json.dumps({
+                        'fileName': file_name,
+                        'classificationResult': result
+                    }),
+                )
 
-            # Send the result to the Response Queue
-            sqs.send_message(
-                QueueUrl=RESPONSE_QUEUE_URL,
-                MessageBody=json.dumps({
-                    'fileName': file_name,
-                    'classificationResult': result
-                }),
-            )
+                # Delete the message from the Request Queue
+                sqs.delete_message(
+                    QueueUrl=REQUEST_QUEUE_URL,
+                    ReceiptHandle=message['ReceiptHandle']
+                )
 
-            # Delete the message from the Request Queue
-            sqs.delete_message(
-                QueueUrl=REQUEST_QUEUE_URL,
-                ReceiptHandle=message['ReceiptHandle']
-            )
+if __name__ == '__main__':
+    read_requests()
 
     # time.sleep(2)
