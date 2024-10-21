@@ -62,11 +62,9 @@ def read_requests():
                 # Upload the image to S3 Input Bucket
                 # Run the model inference on the saved image
                 result = process_image(file_name)
-                s3.upload_file(file_name, INPUT_BUCKET_NAME, file_name)
                 
                 # Upload the classification result to the S3 Output Bucket (Optional)
-                s3.put_object(Bucket=OUTPUT_BUCKET_NAME, Key=f'{file_name}.txt', Body=result)
-
+                
                 # Send the result to the Response Queue
                 sqs.send_message(
                     QueueUrl=RESPONSE_QUEUE_URL,
@@ -75,6 +73,11 @@ def read_requests():
                         'classificationResult': result
                     }),
                 )
+
+                s3.put_object(Bucket=OUTPUT_BUCKET_NAME, Key=f'{file_name}.txt', Body=result)
+
+                s3.upload_file(file_name, INPUT_BUCKET_NAME, file_name)
+                
 
                 # Delete the message from the Request Queue
                 sqs.delete_message(
